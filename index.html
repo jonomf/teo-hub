@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mateo's Learning Hub</title>
+<script>
+  // Apply the shared theme before first paint (no white flash).
+  // hub:theme = "dark" (default) | "light" | "auto"
+  (function () {
+    var t = "dark";
+    try {
+      var v = localStorage.getItem("hub:theme");
+      if (v === "dark" || v === "light" || v === "auto") t = v;
+    } catch (e) {}
+    var dark = t === "dark" || (t === "auto" && !(window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches));
+    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme-pref", t);
+  })();
+</script>
+<meta name="theme-color" content="#14161f">
+<meta name="description" content="Mateo's reading and spelling games">
+<link rel="manifest" href="/teo-hub/manifest.webmanifest">
+<link rel="icon" href="/teo-hub/icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/teo-hub/icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="/teo-hub/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Teo's Hub">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #14161f;
+    --card: #1f2230;
+    --card-press: #262a3b;
+    --text: #f4f5fa;
+    --muted: #a3a8bf;
+    --chip: #2b2f42;
+    --shadow: rgba(0, 0, 0, 0.45);
+    --edge: rgba(255, 255, 255, 0.06);
+    color-scheme: dark;
+  }
+  [data-theme="light"] {
+    --bg: #f3f5fb;
+    --card: #ffffff;
+    --card-press: #eef0f7;
+    --text: #1d2033;
+    --muted: #5f6580;
+    --chip: #eceff7;
+    --shadow: rgba(29, 32, 51, 0.16);
+    --edge: rgba(29, 32, 51, 0.08);
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-weight: 700;
+    -webkit-tap-highlight-color: transparent;
+    padding: calc(env(safe-area-inset-top) + 16px) calc(env(safe-area-inset-right) + 16px)
+             calc(env(safe-area-inset-bottom) + 32px) calc(env(safe-area-inset-left) + 16px);
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+
+  header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin: 8px 4px 24px; }
+  h1 { font-size: clamp(30px, 8vw, 44px); font-weight: 900; margin: 0; line-height: 1.1; }
+  .sub { margin: 6px 0 0; font-size: clamp(18px, 4.6vw, 22px); color: var(--muted); }
+
+  .theme-btn {
+    flex: none;
+    width: 56px; height: 56px;
+    border: 0; border-radius: 18px;
+    background: var(--card);
+    box-shadow: 0 4px 0 var(--shadow);
+    font-size: 26px; line-height: 1;
+    cursor: pointer;
+  }
+  .theme-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--shadow); }
+
+  .grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+  @media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; gap: 22px; } }
+
+  .tile {
+    --accent: #2fbf4f;
+    position: relative;
+    display: flex; flex-direction: column; gap: 14px;
+    min-height: 168px;
+    padding: 20px 20px 22px;
+    border-radius: 28px;
+    background: var(--card);
+    border: 2px solid var(--edge);
+    border-bottom: 8px solid var(--accent);
+    box-shadow: 0 6px 0 var(--shadow);
+    color: inherit; text-decoration: none;
+    transition: transform 80ms ease, box-shadow 80ms ease;
+  }
+  .tile:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--shadow); background: var(--card-press); }
+  .tile:focus-visible { outline: 4px solid var(--accent); outline-offset: 3px; }
+
+  .top { display: flex; align-items: center; gap: 16px; }
+  .emoji {
+    flex: none;
+    width: 76px; height: 76px;
+    display: grid; place-items: center;
+    border-radius: 24px;
+    background: var(--accent);
+    font-size: 42px; line-height: 1;
+  }
+  .name { font-size: clamp(24px, 6.4vw, 30px); font-weight: 900; line-height: 1.1; margin: 0; }
+  .desc { margin: 4px 0 0; font-size: 18px; color: var(--muted); }
+
+  .progress { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 13px;
+    border-radius: 999px;
+    background: var(--chip);
+    font-size: 17px; font-weight: 800;
+  }
+  .chip.new { color: var(--muted); }
+
+  .msg { text-align: center; padding: 40px 16px; font-size: 20px; color: var(--muted); }
+  .retry {
+    margin-top: 16px;
+    padding: 14px 26px;
+    border: 0; border-radius: 18px;
+    background: #2fbf4f; color: #fff;
+    font: inherit; font-size: 20px; font-weight: 900;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.35);
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Hi Mateo! 👋</h1>
+      <p class="sub">What do you want to play?</p>
+    </div>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Change colors">🌙</button>
+  </header>
+
+  <main id="apps" class="grid" aria-live="polite"></main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var appsEl = document.getElementById("apps");
+  var apps = [];
+
+  // ---------- storage helpers (only hub: keys; never clear()) ----------
+  function readKey(key) {
+    try { return localStorage.getItem(key); } catch (e) { return null; }
+  }
+  function writeKey(key, value) {
+    try { localStorage.setItem(key, value); } catch (e) {}
+  }
+
+  // ---------- theme ----------
+  var THEMES = ["dark", "light", "auto"];
+  var THEME_ICON = { dark: "🌙", light: "☀️", auto: "🌓" };
+  var THEME_LABEL = { dark: "Dark colors", light: "Light colors", auto: "Colors follow the device" };
+  var lightQuery = window.matchMedia ? matchMedia("(prefers-color-scheme: light)") : null;
+
+  function themePref() {
+    var v = readKey("hub:theme");
+    return THEMES.indexOf(v) >= 0 ? v : "dark";
+  }
+  function applyTheme() {
+    var pref = themePref();
+    var dark = pref === "dark" || (pref === "auto" && !(lightQuery && lightQuery.matches));
+    var root = document.documentElement;
+    root.setAttribute("data-theme", dark ? "dark" : "light");
+    root.setAttribute("data-theme-pref", pref);
+    document.querySelector('meta[name="theme-color"]').setAttribute("content", dark ? "#14161f" : "#f3f5fb");
+    var btn = document.getElementById("themeBtn");
+    btn.textContent = THEME_ICON[pref];
+    btn.setAttribute("aria-label", THEME_LABEL[pref] + " (tap to change)");
+    btn.title = THEME_LABEL[pref];
+  }
+  document.getElementById("themeBtn").addEventListener("click", function () {
+    var next = THEMES[(THEMES.indexOf(themePref()) + 1) % THEMES.length];
+    writeKey("hub:theme", next);
+    applyTheme();
+  });
+  if (lightQuery) {
+    var onScheme = function () { if (themePref() === "auto") applyTheme(); };
+    if (lightQuery.addEventListener) lightQuery.addEventListener("change", onScheme);
+    else if (lightQuery.addListener) lightQuery.addListener(onScheme);
+  }
+  applyTheme();
+
+  // ---------- apps.json ----------
+  // A path must be root-relative (e.g. "/duo-teo/"). Never "/" (Jono's root site),
+  // never protocol-relative "//", never an absolute URL.
+  function validPath(p) {
+    return typeof p === "string" && /^\/[A-Za-z0-9._~-]+(\/.*)?$/.test(p);
+  }
+  function validColor(c) {
+    return typeof c === "string" && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(c);
+  }
+  function cleanApps(list) {
+    if (!Array.isArray(list)) return [];
+    return list.filter(function (a) {
+      return a && typeof a.id === "string" && a.id && typeof a.name === "string" && a.name && validPath(a.path);
+    });
+  }
+
+  // ---------- progress summary: hub:app:<id> ----------
+  function readProgress(id) {
+    var raw = readKey("hub:app:" + id);
+    if (!raw) return null;
+    try {
+      var p = JSON.parse(raw);
+      return p && typeof p === "object" && !Array.isArray(p) ? p : null;
+    } catch (e) {
+      return null; // invalid JSON = not played yet
+    }
+  }
+  function dayStart(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); }
+  function daysAgo(iso) {
+    if (typeof iso !== "string") return null;
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return null;
+    return Math.max(0, Math.round((dayStart(new Date()) - dayStart(d)) / 86400000));
+  }
+  function playedText(n) {
+    if (n === 0) return "Played today";
+    if (n === 1) return "Played yesterday";
+    return "Played " + n + " days ago";
+  }
+
+  function chip(text, cls) {
+    var s = document.createElement("span");
+    s.className = "chip" + (cls ? " " + cls : "");
+    s.textContent = text;
+    return s;
+  }
+
+  function progressChips(id) {
+    var p = readProgress(id);
+    var out = [];
+    if (!p) return [chip("✨ Not played yet", "new")];
+    var n = daysAgo(p.lastPlayed);
+    // A streak only counts if he played today or yesterday.
+    if (typeof p.streak === "number" && p.streak > 0 && n !== null && n <= 1) {
+      out.push(chip("🔥 " + Math.floor(p.streak) + (p.streak >= 2 ? " days" : " day")));
+    }
+    if (typeof p.xp === "number" && isFinite(p.xp)) out.push(chip("⭐ " + Math.floor(p.xp) + " XP"));
+    if (typeof p.status === "string" && p.status.trim()) out.push(chip(p.status.trim().slice(0, 40)));
+    if (n !== null) out.push(chip(playedText(n)));
+    return out.length ? out : [chip("✨ Not played yet", "new")];
+  }
+
+  function tile(app) {
+    var a = document.createElement("a");
+    a.className = "tile";
+    a.href = app.path;
+    if (validColor(app.color)) a.style.setProperty("--accent", app.color);
+
+    var top = document.createElement("div");
+    top.className = "top";
+    var emoji = document.createElement("div");
+    emoji.className = "emoji";
+    emoji.setAttribute("aria-hidden", "true");
+    emoji.textContent = app.emoji || "🎮";
+    var text = document.createElement("div");
+    var name = document.createElement("p");
+    name.className = "name";
+    name.textContent = app.name;
+    text.appendChild(name);
+    if (app.description) {
+      var desc = document.createElement("p");
+      desc.className = "desc";
+      desc.textContent = app.description;
+      text.appendChild(desc);
+    }
+    top.appendChild(emoji);
+    top.appendChild(text);
+
+    var prog = document.createElement("div");
+    prog.className = "progress";
+    progressChips(app.id).forEach(function (c) { prog.appendChild(c); });
+
+    a.appendChild(top);
+    a.appendChild(prog);
+    return a;
+  }
+
+  function render() {
+    appsEl.textContent = "";
+    if (!apps.length) {
+      var m = document.createElement("div");
+      m.className = "msg";
+      m.textContent = "No games yet. Check back soon! 🌱";
+      appsEl.appendChild(m);
+      return;
+    }
+    apps.forEach(function (app) { appsEl.appendChild(tile(app)); });
+  }
+
+  function showError() {
+    appsEl.textContent = "";
+    var m = document.createElement("div");
+    m.className = "msg";
+    m.appendChild(document.createTextNode("Hmm, the games didn't load. Is the internet on?"));
+    m.appendChild(document.createElement("br"));
+    var b = document.createElement("button");
+    b.className = "retry";
+    b.type = "button";
+    b.textContent = "Try again";
+    b.addEventListener("click", load);
+    m.appendChild(b);
+    appsEl.appendChild(m);
+  }
+
+  function load() {
+    fetch("/teo-hub/apps.json", { cache: "no-cache" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (data) { apps = cleanApps(data); render(); })
+      .catch(showError);
+  }
+
+  // Refresh tiles when he comes back from an app (back button, app switcher, other tab).
+  window.addEventListener("pageshow", function (e) { if (e.persisted) { applyTheme(); render(); } });
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible" && apps.length) { applyTheme(); render(); }
+  });
+  window.addEventListener("storage", function (e) {
+    if (!e.key || e.key === "hub:theme") applyTheme();
+    if (!e.key || e.key.indexOf("hub:app:") === 0) render();
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>
