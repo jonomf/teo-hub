@@ -2,5 +2,7 @@
   { "id": "word-quest", "name": "Word Quest", "emoji": "📖", "path": "/duo-teo/",
     "color": "#2fbf4f", "description": "Spelling and reading" },
   { "id": "word-match", "name": "Word Match", "emoji": "🃏", "path": "/word-match/",
-    "color": "#4a74f0", "description": "Flip cards, find the pairs" }
+    "color": "#4a74f0", "description": "Flip cards, find the pairs" },
+  { "id": "resta-fichas", "name": "Resta con fichas", "emoji": "➖", "path": "/resta-fichas/",
+    "color": "#f2a31b", "description": "Subtraction with tens and ones" }
 ]
